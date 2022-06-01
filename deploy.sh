@@ -8,5 +8,5 @@ echo "Shutting down current app"
 curl http://37.187.200.9:8081/shutdown/
 sleep 3
 echo "Starting app with uploaded jar"
-ssh -f -p 50152 ubuntu@37.187.200.9 "java -jar /home/ubuntu/app.jar >> /var/log/app.log"
+ssh -f -p 50152 ubuntu@37.187.200.9 "java -jar /home/ubuntu/app.jar > /var/log/app.log"
 echo "Done"
