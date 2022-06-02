@@ -1,4 +1,4 @@
-package com.example
+package com.speculator
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
