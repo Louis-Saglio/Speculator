@@ -23,6 +23,9 @@ fun main() {
             get("/bus") {
                 call.respond(getMyBusesNextPassageAsHtml())
             }
+            get("/vcub") {
+                call.respond(getMyVcubStationsStatusAsHtml())
+            }
         }
     }.start(wait = true)
 }
