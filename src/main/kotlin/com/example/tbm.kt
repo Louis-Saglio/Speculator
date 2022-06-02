@@ -54,6 +54,12 @@ suspend fun getMyBusesNextPassageAsHtml() = coroutineScope {
             title {
                 +"Mes prochains bus"
             }
+            script(type = ScriptType.textJavaScript) {
+                unsafe {
+                    //language=JavaScript
+                    raw("window.setInterval(() => this.location.reload(), 20_000)")
+                }
+            }
         }
         body {
             h1 {
