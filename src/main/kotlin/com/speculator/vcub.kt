@@ -3,6 +3,7 @@ package com.speculator
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.server.html.HtmlContent
+import io.ktor.server.request.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -23,13 +24,13 @@ class VcubStationStand(
     @SerialName("available_places") val availablePlaces: Int,
 )
 
-suspend fun getMyVcubStationsStatusAsHtml() = coroutineScope {
-    val metadata = listOf("Cauderan", "Allees de Chartres")
+suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = coroutineScope {
+    val metadata = request.queryParameters.getAll("station") ?: emptyList()
     val vcubStationsData = withContext(Dispatchers.IO) {
         client.get("https://carto.infotbm.com/api/realtime/data?display=bikes&data=vcub").body<VcubBikesCartoPayload>()
     }
-    val vcubStations = metadata.map { stationName ->
-        vcubStationsData.places.first { p -> p.name == stationName }
+    val vcubStations = metadata.mapNotNull { stationName ->
+        vcubStationsData.places.firstOrNull { p -> p.name == stationName }
     }
     HtmlContent {
         head {

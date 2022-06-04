@@ -15,17 +15,16 @@ import kotlinx.serialization.json.Json
 
 fun main() {
     embeddedServer(CIO, port = 8081, host = "127.0.0.1") {
-        install(ShutDownUrl.ApplicationCallPlugin) {
-            // todo : doesn't work
-            shutDownUrl = "/shutdown/"
-        }
         install(CallLogging)
         routing {
             get("/bus") {
                 call.respond(getMyBusesNextPassageAsHtml())
             }
             get("/vcub") {
-                call.respond(getMyVcubStationsStatusAsHtml())
+                call.respond(getMyVcubStationsStatusAsHtml(call.request))
+            }
+            get("sandbox") {
+                call.respond(getSandboxHtml(call.request))
             }
         }
     }.start(wait = true)
