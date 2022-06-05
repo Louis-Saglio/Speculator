@@ -23,9 +23,6 @@ fun main() {
             get("/vcub") {
                 call.respond(getMyVcubStationsStatusAsHtml(call.request))
             }
-            get("sandbox") {
-                call.respond(getSandboxHtml(call.request))
-            }
         }
     }.start(wait = true)
 }

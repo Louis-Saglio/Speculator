@@ -2,7 +2,6 @@ package com.speculator
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.server.html.HtmlContent
 import io.ktor.server.request.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -32,20 +31,10 @@ suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = corouti
     val vcubStations = metadata.mapNotNull { stationName ->
         vcubStationsData.places.firstOrNull { p -> p.name == stationName }
     }
-    HtmlContent {
-        head {
-            title {
-                +"Mes stations Vcub"
-            }
-            script(type = ScriptType.textJavaScript) {
-                unsafe {
-                    //language=JavaScript
-                    raw("window.setInterval(() => this.location.reload(), 20_000)")
-                }
-            }
-        }
-        body {
-            h1 { +"Etats de mes stations Vcub" }
+    renderTemplate(DefaultTemplate()) {
+        tabTitle { +"Mes stations Vcub" }
+        pageTitle { +"Mes stations Vcub" }
+        content {
             vcubStations.forEach {
                 h2 { +it.name }
                 ul {
@@ -53,11 +42,6 @@ suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = corouti
                     li { +"${it.stand.availableBikes} vélos normaux" }
                     li { +"${it.stand.availableElectricBikes} vélos électriques" }
                 }
-            }
-            button {
-                //language=JavaScript
-                onClick = "location.reload()"
-                +"Refresh"
             }
         }
     }

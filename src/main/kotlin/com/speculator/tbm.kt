@@ -2,7 +2,6 @@ package com.speculator
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.server.html.HtmlContent
 import kotlinx.coroutines.*
 import kotlinx.html.*
 import kotlinx.serialization.json.*
@@ -49,22 +48,10 @@ suspend fun getMyBusesNextPassageAsHtml() = coroutineScope {
         .map { (name, deferredWaitTimes) ->
             name to deferredWaitTimes.awaitAll().flatten().sortedBy { it.waitTime }
         }
-    HtmlContent {
-        head {
-            title {
-                +"Mes prochains bus"
-            }
-            script(type = ScriptType.textJavaScript) {
-                unsafe {
-                    //language=JavaScript
-                    raw("window.setInterval(() => this.location.reload(), 20_000)")
-                }
-            }
-        }
-        body {
-            h1 {
-                +"Prochains bus"
-            }
+    renderTemplate(DefaultTemplate()) {
+        tabTitle { +"Prochains bus" }
+        pageTitle { +"Prochains bus" }
+        content {
             data.forEach { (name, waitTimes) ->
                 h2 {
                     +name
@@ -76,11 +63,6 @@ suspend fun getMyBusesNextPassageAsHtml() = coroutineScope {
                         }
                     }
                 }
-            }
-            button {
-                //language=JavaScript
-                onClick = "location.reload()"
-                +"Refresh"
             }
         }
     }
