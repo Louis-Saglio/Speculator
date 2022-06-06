@@ -1,7 +1,6 @@
 package com.speculator
 
 import io.ktor.client.*
-import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -36,12 +35,5 @@ val client = HttpClient {
             },
             ContentType.Application.Json,
         )
-    }
-    defaultRequest {
-        url {
-            protocol = URLProtocol.HTTPS
-            host = "ws.infotbm.com"
-            url("/ws/1.0/")
-        }
     }
 }
