@@ -11,6 +11,7 @@ import kotlinx.html.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import java.text.Normalizer
 
 @Serializable
 class VcubBikesCartoPayload(val places: List<VcubStation>)
@@ -40,13 +41,17 @@ class VcubStationStatePrediction(
     @SerialName("tau") val minutesDelta: Int
 )
 
+fun simplifyString(string: String): String {
+    return Normalizer.normalize(string.lowercase(), Normalizer.Form.NFKD).filter { it in "abcdefghijklmnopqrstuvwxyz" }
+}
+
 suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = coroutineScope {
     val stationNames = request.queryParameters.getAll("station") ?: emptyList()
     val vcubStationsData = withContext(Dispatchers.IO) {
         client.get("https://carto.infotbm.com/api/realtime/data?display=bikes&data=vcub").body<VcubBikesCartoPayload>()
     }
     val vcubStations = stationNames.mapNotNull { stationName ->
-        vcubStationsData.places.firstOrNull { p -> p.name == stationName }
+        vcubStationsData.places.firstOrNull { p -> simplifyString(p.name) == simplifyString(stationName) }
     }
     val predictionsByStation = vcubStations.map {
         it to async(Dispatchers.IO) {
