@@ -58,19 +58,26 @@ suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = corouti
         pageTitle { +"Mes stations Vcub" }
         content {
             vcubStations.forEach {
-                h2 { +it.name }
-                h3 { +"Maintenant" }
-                ul {
-                    li { +"${it.stand.availablePlaces} places" }
-                    li { +"${it.stand.availableBikes} vélos normaux" }
-                    li { +"${it.stand.availableElectricBikes} vélos électriques" }
-                }
-                h3 { +"Predictions" }
-                predictionsByStation[it]?.forEach { prediction ->
-                    h4 { +"Dans ${prediction.minutesDelta} minutes" }
-                    ol {
-                        li { +"${prediction.availablePlaces} places" }
-                        li { +"${prediction.availableBikes} vélos" }
+                section {
+                    h2(classes = "section-title") { +it.name }
+                    div(classes = "section-content") {
+                        div(classes = "sub-section") {
+                            h3 { +"Maintenant" }
+                            ul {
+                                li { +"${it.stand.availablePlaces} places" }
+                                li { +"${it.stand.availableBikes} vélos normaux" }
+                                li { +"${it.stand.availableElectricBikes} vélos électriques" }
+                            }
+                        }
+                        predictionsByStation[it]?.forEach { prediction ->
+                            div(classes = "sub-section") {
+                                h3 { +"Dans ${prediction.minutesDelta} minutes" }
+                                ul {
+                                    li { +"${prediction.availablePlaces} places" }
+                                    li { +"${prediction.availableBikes} vélos" }
+                                }
+                            }
+                        }
                     }
                 }
             }
