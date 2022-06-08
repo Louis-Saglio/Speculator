@@ -30,8 +30,8 @@ class DefaultTemplate : Template<HTML> {
             }
             style(type = StyleType.textCss) {
                 unsafe {
-                    //language=CSS
                     raw(
+                        //language=CSS
                         """
                             body * {
                                 display: flex;
