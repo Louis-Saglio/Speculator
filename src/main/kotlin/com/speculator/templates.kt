@@ -33,33 +33,15 @@ class DefaultTemplate : Template<HTML> {
                     raw(
                         //language=CSS
                         """
-                            body * {
-                                display: flex;
-                                flex-direction: column;
-                                margin: 0;
-                                padding: 0;
-                            }
-                            h1 {
-                                padding: 0 0 16px 0;
-                            }
-                            h2 {
-                                padding: 20px 0 16px 0;
-                            }
-                            h4 {
-                                padding: 10px 0 8px 0;
-                            }
                             .section-content {
+                                display: flex;
                                 flex-direction: row;
                             }
                             .section-content > div {
-                                padding-right: 16px;
+                                margin-right: 16px;
                             }
-                            .refresh-button {
-                                padding-top: 16px;
-                            }
-                            button {
-                                margin-top: 32px;
-                                padding: 8px;
+                            .add-station {
+                                margin-top: 16px;
                             }
                         """.trimIndent()
                     )

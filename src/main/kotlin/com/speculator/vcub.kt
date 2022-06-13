@@ -113,6 +113,14 @@ suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = corouti
                     }
                 }
             }
+            section(classes = "add-station") {
+                input(InputType.text, classes = "station-name-input") { }
+                button {
+                    //language=JavaScript
+                    onClick = """location.href += "&station=" + document.getElementsByClassName("station-name-input")[0].value"""
+                    +"Add"
+                }
+            }
         }
     }
 }
