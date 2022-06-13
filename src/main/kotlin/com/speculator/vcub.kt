@@ -45,13 +45,40 @@ fun simplifyString(string: String): String {
     return Normalizer.normalize(string.lowercase(), Normalizer.Form.NFKD).filter { it in "abcdefghijklmnopqrstuvwxyz" }
 }
 
+fun String.computeSimilarityScoreWith(b: String): Int {
+    val thisSet = toSet()
+    val bSet = b.toSet()
+    var commonLettersNbr = 0
+    thisSet.forEach {
+        if (it in bSet) {
+            commonLettersNbr += 1
+        }
+    }
+    bSet.forEach {
+        if (it !in thisSet) {
+            commonLettersNbr -= 1
+        }
+    }
+    return commonLettersNbr
+}
+
 suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = coroutineScope {
     val stationNames = request.queryParameters.getAll("station") ?: emptyList()
     val vcubStationsData = withContext(Dispatchers.IO) {
         client.get("https://carto.infotbm.com/api/realtime/data?display=bikes&data=vcub").body<VcubBikesCartoPayload>()
     }
     val vcubStations = stationNames.mapNotNull { stationName ->
-        vcubStationsData.places.firstOrNull { p -> simplifyString(p.name) == simplifyString(stationName) }
+        var bestSimilarityScore: Int? = null
+        var bestMatch: VcubStation? = null
+        for (p in vcubStationsData.places) {
+            val requestedStationName = simplifyString(stationName)
+            val similarityScore = requestedStationName.computeSimilarityScoreWith(simplifyString(p.name))
+            if (bestSimilarityScore == null || similarityScore > bestSimilarityScore) {
+                bestSimilarityScore = similarityScore
+                bestMatch = p
+            }
+        }
+        bestMatch
     }
     val predictionsByStation = vcubStations.map {
         it to async(Dispatchers.IO) {
