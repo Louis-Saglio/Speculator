@@ -21,6 +21,9 @@ fun main() {
             get("/vcub") {
                 respondMyVcubStationsStatusAsHtml(call)
             }
+            get("/vcub/closest") {
+                buildUrlForClosestStations(call)
+            }
             post("/add-to-vcub-url") {
                 addStationNameToVcubUrl(call)
             }

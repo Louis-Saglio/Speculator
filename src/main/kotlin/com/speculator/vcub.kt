@@ -16,12 +16,22 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.text.Normalizer
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 @Serializable
 class VcubBikesCartoPayload(val places: List<VcubStation>)
 
 @Serializable
-class VcubStation(val name: String, @SerialName("id") val poiId: String, val stand: VcubStationStand) {
+class Coordinates(@SerialName("lat") val latitude: Double, @SerialName("lon") val longitude: Double)
+
+@Serializable
+class VcubStation(
+    val name: String,
+    @SerialName("id") val poiId: String,
+    val stand: VcubStationStand,
+    @SerialName("coord") val coordinates: Coordinates
+) {
     @Transient val id = poiId.split(":").last().toInt()
 }
 
@@ -147,4 +157,33 @@ suspend fun addStationNameToVcubUrl(call: ApplicationCall) {
         }
         call.respondRedirect(urlBuilder.buildString())
     }
+}
+
+suspend fun buildUrlForClosestStations(call: ApplicationCall) {
+    val longitude = call.request.queryParameters["longitude"]?.toDoubleOrNull()
+    val latitude = call.request.queryParameters["latitude"]?.toDoubleOrNull()
+    if (latitude == null || longitude == null) {
+        call.respond(HttpStatusCode.BadRequest)
+        return
+    }
+    val vcubStationsData = withContext(Dispatchers.IO) {
+        client.get("https://carto.infotbm.com/api/realtime/data?display=bikes&data=vcub").body<VcubBikesCartoPayload>()
+    }
+    val closestStations = vcubStationsData.places.sortedBy {
+        sqrt((longitude - it.coordinates.longitude).pow(2) + (latitude - it.coordinates.latitude).pow(2))
+    }.onEach {
+        val d = sqrt((longitude - it.coordinates.longitude).pow(2) + (latitude - it.coordinates.latitude).pow(2))
+        println("${it.name} : $d")
+    }.subList(0, 3)
+    call.respondRedirect(
+        URLBuilder().apply {
+            protocol = URLProtocol.byName[call.request.local.scheme] ?: URLProtocol.HTTP
+            port = call.request.port()
+            host = call.request.host()
+            path("/vcub")
+            closestStations.forEach {
+                parameters.append("station", it.name)
+            }
+        }.buildString()
+    )
 }
