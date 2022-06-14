@@ -5,6 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import kotlinx.coroutines.Dispatchers
@@ -177,7 +178,7 @@ suspend fun buildUrlForClosestStations(call: ApplicationCall) {
     }.subList(0, 3)
     call.respondRedirect(
         URLBuilder().apply {
-            protocol = URLProtocol.byName[call.request.local.scheme] ?: URLProtocol.HTTP
+            protocol = URLProtocol.byName[call.request.origin.scheme] ?: URLProtocol.HTTP
             port = call.request.port()
             host = call.request.host()
             path("/vcub")
