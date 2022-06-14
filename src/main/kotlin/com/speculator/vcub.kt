@@ -2,7 +2,10 @@ package com.speculator
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -114,13 +117,33 @@ suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = corouti
                 }
             }
             section(classes = "add-station") {
-                input(InputType.text, classes = "station-name-input") { }
-                button {
-                    //language=JavaScript
-                    onClick = """location.href += "&station=" + document.getElementsByClassName("station-name-input")[0].value"""
-                    +"Add"
+                form {
+                    action = "/add-to-vcub-url"
+                    method = FormMethod.post
+                    input(classes = "station-name-input") {
+                        type = InputType.text
+                        name = "station-name"
+                    }
+                    input {
+                        type = InputType.submit
+                        value = "Add"
+                    }
                 }
             }
         }
+    }
+}
+
+suspend fun addStationNameToVcubUrl(call: ApplicationCall) {
+    val newStationName = call.receiveParameters()["station-name"]
+    val referer = call.request.headers["Referer"]
+    if (referer == null) {
+        call.respond(HttpStatusCode.BadRequest)
+    } else {
+        val urlBuilder = URLBuilder(referer)
+        if (newStationName != null) {
+            urlBuilder.parameters.append("station", newStationName)
+        }
+        call.respondRedirect(urlBuilder.buildString())
     }
 }

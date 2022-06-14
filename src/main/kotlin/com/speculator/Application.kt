@@ -22,6 +22,9 @@ fun main() {
             get("/vcub") {
                 call.respond(getMyVcubStationsStatusAsHtml(call.request))
             }
+            post("/add-to-vcub-url") {
+                addStationNameToVcubUrl(call)
+            }
         }
     }.start(wait = true)
 }
