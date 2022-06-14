@@ -4,6 +4,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import kotlinx.coroutines.Dispatchers
@@ -65,8 +66,8 @@ fun String.computeSimilarityScoreWith(b: String): Int {
     return commonLettersNbr
 }
 
-suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = coroutineScope {
-    val stationNames = request.queryParameters.getAll("station") ?: emptyList()
+suspend fun respondMyVcubStationsStatusAsHtml(call: ApplicationCall) = coroutineScope {
+    val stationNames = call.request.queryParameters.getAll("station") ?: emptyList()
     val vcubStationsData = withContext(Dispatchers.IO) {
         client.get("https://carto.infotbm.com/api/realtime/data?display=bikes&data=vcub").body<VcubBikesCartoPayload>()
     }
@@ -88,7 +89,7 @@ suspend fun getMyVcubStationsStatusAsHtml(request: ApplicationRequest) = corouti
             client.get("https://ws.infotbm.com/ws/1.0/vcubs/predict/15-30/${it.id}").body<VcubStationStatePredictionsPayload>()
         }
     }.associate { (station, deferredPrediction) -> station to deferredPrediction.await().predictions.data }
-    renderTemplate(DefaultTemplate()) {
+    call.respondHtmlTemplate(DefaultTemplate()) {
         tabTitle { +"Mes stations Vcub" }
         pageTitle { +"Mes stations Vcub" }
         content {

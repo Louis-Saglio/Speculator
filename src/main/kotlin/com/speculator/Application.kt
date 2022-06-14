@@ -8,7 +8,6 @@ import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.callloging.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
@@ -17,10 +16,10 @@ fun main() {
         install(CallLogging)
         routing {
             get("/bus") {
-                call.respond(getMyBusesNextPassageAsHtml())
+                respondMyBusesNextPassageAsHtml(call)
             }
             get("/vcub") {
-                call.respond(getMyVcubStationsStatusAsHtml(call.request))
+                respondMyVcubStationsStatusAsHtml(call)
             }
             post("/add-to-vcub-url") {
                 addStationNameToVcubUrl(call)

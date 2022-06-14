@@ -2,8 +2,12 @@ package com.speculator
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.server.application.*
+import io.ktor.server.html.*
 import kotlinx.coroutines.*
-import kotlinx.html.*
+import kotlinx.html.h2
+import kotlinx.html.li
+import kotlinx.html.ul
 import kotlinx.serialization.json.*
 
 private val JsonElement?.jsonObjectOrNull: JsonObject?
@@ -38,7 +42,7 @@ suspend fun getNextBusArrival(urlPath: String) = withContext(Dispatchers.IO) {
     } ?: emptyList()
 }
 
-suspend fun getMyBusesNextPassageAsHtml() = coroutineScope {
+suspend fun respondMyBusesNextPassageAsHtml(call: ApplicationCall) = coroutineScope {
     val metaData = mapOf(
         "Eglise de caudéran" to listOf("https://ws.infotbm.com/ws/1.0/get-realtime-pass/3169/02", "https://ws.infotbm.com/ws/1.0/get-realtime-pass/3169/03"),
         "Quinconces" to listOf("https://ws.infotbm.com/ws/1.0/get-realtime-pass/3648/02", "https://ws.infotbm.com/ws/1.0/get-realtime-pass/3648/03")
@@ -48,7 +52,7 @@ suspend fun getMyBusesNextPassageAsHtml() = coroutineScope {
         .map { (name, deferredWaitTimes) ->
             name to deferredWaitTimes.awaitAll().flatten().sortedBy { it.waitTime }
         }
-    renderTemplate(DefaultTemplate()) {
+    call.respondHtmlTemplate(DefaultTemplate()) {
         tabTitle { +"Prochains bus" }
         pageTitle { +"Prochains bus" }
         content {

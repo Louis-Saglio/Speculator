@@ -1,16 +1,7 @@
 package com.speculator
 
 import io.ktor.server.html.*
-import io.ktor.server.html.HtmlContent
 import kotlinx.html.*
-
-fun <TTemplate : Template<HTML>> renderTemplate(
-    template: TTemplate,
-    body: TTemplate.() -> Unit
-): HtmlContent {
-    template.body()
-    return HtmlContent { with(template) { apply() } }
-}
 
 class DefaultTemplate : Template<HTML> {
     val pageTitle = Placeholder<FlowContent>()
@@ -31,7 +22,6 @@ class DefaultTemplate : Template<HTML> {
             style(type = StyleType.textCss) {
                 unsafe {
                     raw(
-                        //language=CSS
                         """
                             .section-content {
                                 display: flex;
