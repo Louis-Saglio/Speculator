@@ -38,3 +38,10 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
+
+//tasks {
+//    compileKotlin {
+//        kotlinOptions.freeCompilerArgs += "-Xuse-k2"
+//        kotlinOptions.freeCompilerArgs += "-XXLanguage:+ExplicitBackingFields"
+//    }
+//}
