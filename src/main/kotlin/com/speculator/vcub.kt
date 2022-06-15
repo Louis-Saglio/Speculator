@@ -172,9 +172,6 @@ suspend fun buildUrlForClosestStations(call: ApplicationCall) {
     }
     val closestStations = vcubStationsData.places.sortedBy {
         sqrt((longitude - it.coordinates.longitude).pow(2) + (latitude - it.coordinates.latitude).pow(2))
-    }.onEach {
-        val d = sqrt((longitude - it.coordinates.longitude).pow(2) + (latitude - it.coordinates.latitude).pow(2))
-        println("${it.name} : $d")
     }.subList(0, 3)
     call.respondRedirect(
         URLBuilder().apply {
@@ -187,4 +184,24 @@ suspend fun buildUrlForClosestStations(call: ApplicationCall) {
             }
         }.buildString()
     )
+}
+
+suspend fun respondGetCoordinatesScript(call: ApplicationCall) {
+    call.respondHtml {
+        head {
+            script {
+                unsafe {
+                    //language=JavaScript
+                    raw(
+                        """
+                        navigator.geolocation.getCurrentPosition(coordinates => {
+                          const url = window.location.origin + "/vcub/closest?latitude=" + coordinates.coords.latitude + "&longitude=" + coordinates.coords.longitude
+                          window.location.href = url
+                        })
+                        """.trimIndent()
+                    )
+                }
+            }
+        }
+    }
 }

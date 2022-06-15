@@ -29,6 +29,9 @@ fun main() {
             post("/add-to-vcub-url") {
                 addStationNameToVcubUrl(call)
             }
+            get("/vcub/closest-from-me") {
+                respondGetCoordinatesScript(call)
+            }
         }
     }.start(wait = true)
 }
