@@ -106,7 +106,12 @@ suspend fun respondMyVcubStationsStatusAsHtml(call: ApplicationCall) = coroutine
         content {
             vcubStations.forEach {
                 section {
-                    h2(classes = "section-title") { +it.name }
+                    h2(classes = "section-title") {
+                        a {
+                            href = "https://www.google.com/maps/search/?api=1&query=${it.coordinates.latitude},${it.coordinates.longitude}"
+                            +it.name
+                        }
+                    }
                     div(classes = "section-content") {
                         div(classes = "sub-section") {
                             h3 { +"Maintenant" }
@@ -130,7 +135,7 @@ suspend fun respondMyVcubStationsStatusAsHtml(call: ApplicationCall) = coroutine
             }
             section(classes = "add-station") {
                 form {
-                    action = "/add-to-vcub-url"
+                    action = "/vcub/add-to-url"
                     method = FormMethod.post
                     input(classes = "station-name-input") {
                         type = InputType.text
