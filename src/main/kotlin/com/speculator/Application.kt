@@ -20,17 +20,19 @@ fun main() {
             get("/bus") {
                 respondMyBusesNextPassageAsHtml(call)
             }
-            get("/vcub") {
-                respondMyVcubStationsStatusAsHtml(call)
-            }
-            get("/vcub/closest") {
-                buildUrlForClosestStations(call)
-            }
-            post("/add-to-vcub-url") {
-                addStationNameToVcubUrl(call)
-            }
-            get("/vcub/closest-from-me") {
-                respondGetCoordinatesScript(call)
+            route("vcub") {
+                get {
+                    respondMyVcubStationsStatusAsHtml(call)
+                }
+                get("closest") {
+                    buildUrlForClosestStations(call)
+                }
+                post("add-to-url") {
+                    addStationNameToVcubUrl(call)
+                }
+                get("closest-from-me") {
+                    respondGetCoordinatesScript(call)
+                }
             }
         }
     }.start(wait = true)
