@@ -1,4 +1,4 @@
-package com.speculator
+package com.speculator.tbm
 
 import io.ktor.server.html.*
 import kotlinx.html.*

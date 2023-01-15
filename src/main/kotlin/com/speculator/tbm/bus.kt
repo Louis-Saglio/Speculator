@@ -1,5 +1,6 @@
-package com.speculator
+package com.speculator.tbm
 
+import com.speculator.client
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.server.application.*

@@ -1,5 +1,6 @@
-package com.speculator
+package com.speculator.tbm
 
+import com.speculator.client
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -199,9 +200,8 @@ suspend fun respondGetCoordinatesScript(call: ApplicationCall) {
                     //language=JavaScript
                     raw(
                         """
-                        navigator.geolocation.getCurrentPosition(coordinates => {
-                          const url = window.location.origin + "/vcub/closest?latitude=" + coordinates.coords.latitude + "&longitude=" + coordinates.coords.longitude
-                          window.location.href = url
+                        navigator.geolocation.getCurrentPosition(coordinates => {                        
+                            window.location.href = window.location.origin + '/vcub/closest?latitude=' + coordinates.coords.latitude + '&longitude=' + coordinates.coords.longitude
                         })
                         """.trimIndent()
                     )
