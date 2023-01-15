@@ -13,29 +13,31 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
 fun main() {
-    embeddedServer(CIO, port = 8081, host = "127.0.0.1") {
-        install(CallLogging)
-        install(XForwardedHeaders)
-        routing {
-            get("/bus") {
-                respondMyBusesNextPassageAsHtml(call)
+    embeddedServer(CIO, port = 8081, host = "127.0.0.1", module = Application::mainModule).start(wait = true)
+}
+
+fun Application.mainModule() {
+    install(CallLogging)
+    install(XForwardedHeaders)
+    routing {
+        get("/bus") {
+            respondMyBusesNextPassageAsHtml(call)
+        }
+        route("vcub") {
+            get {
+                respondMyVcubStationsStatusAsHtml(call)
             }
-            route("vcub") {
-                get {
-                    respondMyVcubStationsStatusAsHtml(call)
-                }
-                get("closest") {
-                    buildUrlForClosestStations(call)
-                }
-                post("add-to-url") {
-                    addStationNameToVcubUrl(call)
-                }
-                get("closest-from-me") {
-                    respondGetCoordinatesScript(call)
-                }
+            get("closest") {
+                buildUrlForClosestStations(call)
+            }
+            post("add-to-url") {
+                addStationNameToVcubUrl(call)
+            }
+            get("closest-from-me") {
+                respondGetCoordinatesScript(call)
             }
         }
-    }.start(wait = true)
+    }
 }
 
 val client = HttpClient {
