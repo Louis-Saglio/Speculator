@@ -1,3 +1,33 @@
+body * {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
 body {
     background-color: darkslategrey;
+}
+
+#playground {
+    width: 80%;
+    height: 30px;
+    background-color: bisque;
+    flex-direction: row;
+}
+
+#typed {
+    color: red;
+    white-space: pre-wrap;
+}
+
+#current {
+    color: black;
+    white-space: pre-wrap;
+}
+
+#to-type {
+    color: blue;
+    white-space: pre-wrap;
 }
