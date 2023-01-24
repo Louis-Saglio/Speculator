@@ -1,5 +1,5 @@
-window.onload = function () {
-    let expectedText = "lorem ipsum dolor sit amet"
+window.onload = async function () {
+    let expectedText = await generateText()
     let index = 0
     displayPlayGround(expectedText, index)
     document.onkeydown = async (event) => {
@@ -16,7 +16,7 @@ window.onload = function () {
 }
 
 async function generateText() {
-    const response = await fetch("http://127.0.0.1:8081/tryphon/playground-text")
+    const response = await fetch("http://127.0.0.1:8081/tryphon/generate-text")
     return await response.text()
 }
 
