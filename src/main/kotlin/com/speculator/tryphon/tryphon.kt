@@ -5,7 +5,6 @@ import io.ktor.server.http.content.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.io.File
-import java.util.NoSuchElementException
 
 fun Application.tryphon() {
     routing {
@@ -17,9 +16,8 @@ fun Application.tryphon() {
                 )
             }
             get("generate-text") {
-                val frequency = computeFrequency(loadText())
-                println(frequency)
-                val text = generateText(frequency, 50)
+                val frequency = computeFrequency(loadText(), 4)
+                val text = generateText(frequency, 200)
                 call.respondText(text)
             }
         }
@@ -32,17 +30,21 @@ fun Application.tryphon() {
     }
 }
 
-typealias Frequency = Map<Pair<Char, Char>, Map<Char, Int>>
+typealias Frequency = Map<List<Char>, Map<Char, Int>>
 
-fun computeFrequency(text: String): Frequency {
-    val result: MutableMap<Pair<Char, Char>, MutableMap<Char, Int>> = mutableMapOf()
-    var prefix = Pair(text[0], text[1])
-    for (char in text.slice(2 until text.length)) {
-        val prefixMap = result.getOrPut(prefix, ::mutableMapOf)
-        prefixMap[char] = prefixMap.getOrDefault(char, 0) + 1
-        prefix = Pair(prefix.second, char)
+fun computeFrequency(corpus: String, depth: Int): Frequency {
+    val frequency: MutableMap<List<Char>, MutableMap<Char, Int>> = mutableMapOf()
+    var prefix = mutableListOf<Char>()
+    for (char in corpus) {
+        if (prefix.size < depth) {
+            prefix.add(char)
+        } else {
+            val prefixFrequency = frequency.getOrPut(prefix, ::mutableMapOf)
+            prefixFrequency[char] = prefixFrequency.getOrDefault(char, 0) + 1
+            prefix = prefix.slice(1 until depth).toMutableList().also { it.add(char) }
+        }
     }
-    return result
+    return frequency
 }
 
 fun <T> Map<T, Int>.weightedChoice(): T {
@@ -55,29 +57,35 @@ fun <T> Map<T, Int>.weightedChoice(): T {
     return list.random()
 }
 
+val allowedChars = (('A'..'Z') + ('a'..'z')).toMutableList().apply { addAll(" '.,;:!?".toList()) }.toSet()
+val allowedFirstChars = ('A'..'Z')
+val allowedSecondChars = ('a'..'z')
+
+// todo: min word size
+
 fun generateText(frequency: Frequency, length: Int): String {
-    var first = ('a'..'z').random()
-    var second = ('a'..'z').random()
-    val text = mutableListOf<Char>()
-    repeat(length) {
-        val frequencyOfPair = frequency.getOrDefault(Pair(first, second), mapOf())
-        val next = try {
-            frequencyOfPair.weightedChoice()
-        } catch (e: NoSuchElementException) {
-            println("No following letter found for '$first$second'")
-            ' '
+    var prefix: List<Char>
+    do {
+        prefix = frequency.keys.random()
+    } while (prefix[0] !in allowedFirstChars || prefix[1] !in allowedSecondChars)
+    val text = prefix.toMutableList()
+    while(true) {
+        val prefixFrequency = frequency[prefix] ?: throw RuntimeException("No possible char after $prefix")
+        val nextChar = prefixFrequency.weightedChoice()
+        text.add(nextChar)
+        if (text.size >= length && nextChar == '.') {
+            break
         }
-        text.add(next)
-        first = second
-        second = next
+        prefix = prefix.slice(1 until prefix.size).toMutableList().apply { add(nextChar) }
+
     }
     return text.joinToString("")
 }
 
 fun loadText(): String {
     val corpus = mutableListOf<Char>()
-    for (char in File("src/main/resources/tryphon/corpus.txt").readText().lowercase()) {
-        if (char in 'a'..'z' || char == ' ') {
+    for (char in File("src/main/resources/tryphon/corpus.txt").readText().replace('\n', ' ').replace("  ", " ").replace("   ", " ")) {
+        if (char in allowedChars) {
             corpus.add(char)
         }
     }
