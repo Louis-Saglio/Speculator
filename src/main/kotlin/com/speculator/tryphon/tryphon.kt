@@ -17,8 +17,7 @@ fun Application.tryphon() {
             }
             get("generate-text") {
                 val frequency = computeFrequency(loadText(), 4)
-                val text = generateText(frequency, 200)
-                call.respondText(text)
+                call.respondText(generateWordsList(frequency, 30, 5).joinToString())
             }
         }
         singlePageApplication {
@@ -60,6 +59,8 @@ fun <T> Map<T, Int>.weightedChoice(): T {
 val allowedChars = (('A'..'Z') + ('a'..'z')).toMutableList().apply { addAll(" '.,;:!?".toList()) }.toSet()
 val allowedFirstChars = ('A'..'Z')
 val allowedSecondChars = ('a'..'z')
+val letters = (('A'..'Z') + ('a'..'z'))
+val stopChars = " '.,;:!?".toSet()
 
 // todo: min word size
 
@@ -69,7 +70,7 @@ fun generateText(frequency: Frequency, length: Int): String {
         prefix = frequency.keys.random()
     } while (prefix[0] !in allowedFirstChars || prefix[1] !in allowedSecondChars)
     val text = prefix.toMutableList()
-    while(true) {
+    while (true) {
         val prefixFrequency = frequency[prefix] ?: throw RuntimeException("No possible char after $prefix")
         val nextChar = prefixFrequency.weightedChoice()
         text.add(nextChar)
@@ -84,10 +85,40 @@ fun generateText(frequency: Frequency, length: Int): String {
 
 fun loadText(): String {
     val corpus = mutableListOf<Char>()
-    for (char in File("src/main/resources/tryphon/corpus.txt").readText().replace('\n', ' ').replace("  ", " ").replace("   ", " ")) {
+    for (char in File("src/main/resources/tryphon/corpus.txt").readText().replace('\n', ' ').replace("  ", " ")
+        .replace("   ", " ")) {
         if (char in allowedChars) {
             corpus.add(char)
         }
     }
     return corpus.joinToString("")
+}
+
+fun generateWord(frequency: Frequency): String {
+    var prefix: List<Char>
+    do {
+        prefix = frequency.keys.random()
+    } while (prefix.all { it in letters })
+    val word = prefix.toMutableList()
+    while (true) {
+        val prefixFrequency = frequency[prefix] ?: throw RuntimeException("No possible char after $prefix")
+        val nextChar = prefixFrequency.weightedChoice()
+        if (nextChar in stopChars) {
+            break
+        }
+        word.add(nextChar)
+        prefix = prefix.slice(1 until prefix.size).toMutableList().apply { add(nextChar) }
+    }
+    return word.joinToString("")
+}
+
+fun generateWordsList(frequency: Frequency, size: Int, minWordSize: Int): List<String> {
+    val words = mutableListOf<String>()
+    while (words.size < size) {
+        val word = generateWord(frequency)
+        if (word.length >= minWordSize) {
+            words.add(word)
+        }
+    }
+    return words
 }

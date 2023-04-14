@@ -4,7 +4,7 @@ val logbackVersion: String by project
 
 plugins {
     application
-    kotlin("jvm") version "1.6.21"
+    kotlin("jvm") version "1.8.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     kotlin("plugin.serialization") version "1.6.21"
 }
@@ -37,6 +37,7 @@ dependencies {
     implementation("io.ktor:ktor-server-forwarded-header:$ktorVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
+    testImplementation("io.ktor:ktor-server-tests-jvm:2.2.4")
 }
 
 //tasks {

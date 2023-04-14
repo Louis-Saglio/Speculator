@@ -1,7 +1,8 @@
-package com.speculator.tbm
+package com.speculator.tbm.vcub
 
 import com.speculator.client
-import io.ktor.client.call.*
+import com.speculator.tbm.DefaultTemplate
+import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -17,28 +18,28 @@ import kotlinx.html.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import java.text.Normalizer
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 @Serializable
-class VcubBikesCartoPayload(val places: List<VcubStation>)
+class VcubBikesCartoPayloadFromAPI(val places: List<VcubStationFromAPI>)
 
 @Serializable
-class Coordinates(@SerialName("lat") val latitude: Double, @SerialName("lon") val longitude: Double)
+class CoordinatesFromAPI(@SerialName("lat") val latitude: Double, @SerialName("lon") val longitude: Double)
 
 @Serializable
-class VcubStation(
+class VcubStationFromAPI(
     val name: String,
     @SerialName("id") val poiId: String,
-    val stand: VcubStationStand,
-    @SerialName("coord") val coordinates: Coordinates
+    val stand: VcubStationStandFomAPI,
+    @SerialName("coord") val coordinates: CoordinatesFromAPI
 ) {
-    @Transient val id = poiId.split(":").last().toInt()
+    @Transient
+    val id = poiId.split(":").last().toInt()
 }
 
 @Serializable
-class VcubStationStand(
+class VcubStationStandFomAPI(
     @SerialName("available_bikes") val availableBikes: Int,
     @SerialName("available_electric_bikes") val availableElectricBikes: Int,
     @SerialName("available_places") val availablePlaces: Int,
@@ -57,38 +58,30 @@ class VcubStationStatePrediction(
     @SerialName("tau") val minutesDelta: Int
 )
 
-fun simplifyString(string: String): String {
-    return Normalizer.normalize(string.lowercase(), Normalizer.Form.NFKD).filter { it in "abcdefghijklmnopqrstuvwxyz" }
-}
-
-fun String.computeSimilarityScoreWith(b: String): Int {
-    val thisSet = toSet()
-    val bSet = b.toSet()
-    var commonLettersNbr = 0
-    thisSet.forEach {
-        if (it in bSet) {
-            commonLettersNbr += 1
-        }
-    }
-    bSet.forEach {
-        if (it !in thisSet) {
-            commonLettersNbr -= 1
-        }
-    }
-    return commonLettersNbr
-}
+@Serializable
+class VcubStationFromFrontPage(
+    val id: Int,
+    val name: String,
+    val latitude: Double,
+    val longitude: Double,
+    val nbBikeAvailable: Int,
+    val nbPlaceAvailable: Int,
+    val nbElectricBikeAvailable: Int,
+    val connexionState: String
+)
 
 suspend fun respondMyVcubStationsStatusAsHtml(call: ApplicationCall) = coroutineScope {
     val stationNames = call.request.queryParameters.getAll("station") ?: emptyList()
     val vcubStationsData = withContext(Dispatchers.IO) {
-        client.get("https://carto.infotbm.com/api/realtime/data?display=bikes&data=vcub").body<VcubBikesCartoPayload>()
+        client.get("https://carto.infotbm.com/api/realtime/data?display=bikes&data=vcub")
+            .body<VcubBikesCartoPayloadFromAPI>()
     }
     val vcubStations = stationNames.mapNotNull { stationName ->
         var bestSimilarityScore: Int? = null
-        var bestMatch: VcubStation? = null
+        var bestMatch: VcubStationFromAPI? = null
         for (p in vcubStationsData.places) {
-            val requestedStationName = simplifyString(stationName)
-            val similarityScore = requestedStationName.computeSimilarityScoreWith(simplifyString(p.name))
+            val requestedStationName = stationName.simplify()
+            val similarityScore = requestedStationName.computeSimilarityScoreWith(p.name.simplify())
             if (bestSimilarityScore == null || similarityScore > bestSimilarityScore) {
                 bestSimilarityScore = similarityScore
                 bestMatch = p
@@ -98,7 +91,8 @@ suspend fun respondMyVcubStationsStatusAsHtml(call: ApplicationCall) = coroutine
     }
     val predictionsByStation = vcubStations.map {
         it to async(Dispatchers.IO) {
-            client.get("https://ws.infotbm.com/ws/1.0/vcubs/predict/15-30/${it.id}").body<VcubStationStatePredictionsPayload>()
+            client.get("https://ws.infotbm.com/ws/1.0/vcubs/predict/15-30/${it.id}")
+                .body<VcubStationStatePredictionsPayload>()
         }
     }.associate { (station, deferredPrediction) -> station to deferredPrediction.await().predictions.data }
     call.respondHtmlTemplate(DefaultTemplate()) {
@@ -109,7 +103,8 @@ suspend fun respondMyVcubStationsStatusAsHtml(call: ApplicationCall) = coroutine
                 section {
                     h2(classes = "section-title") {
                         a {
-                            href = "https://www.google.com/maps/search/?api=1&query=${it.coordinates.latitude},${it.coordinates.longitude}"
+                            href =
+                                "https://www.google.com/maps/search/?api=1&query=${it.coordinates.latitude},${it.coordinates.longitude}"
                             +it.name
                         }
                     }
@@ -174,7 +169,8 @@ suspend fun buildUrlForClosestStations(call: ApplicationCall) {
         return
     }
     val vcubStationsData = withContext(Dispatchers.IO) {
-        client.get("https://carto.infotbm.com/api/realtime/data?display=bikes&data=vcub").body<VcubBikesCartoPayload>()
+        client.get("https://carto.infotbm.com/api/realtime/data?display=bikes&data=vcub")
+            .body<VcubBikesCartoPayloadFromAPI>()
     }
     val closestStations = vcubStationsData.places.sortedBy {
         sqrt((longitude - it.coordinates.longitude).pow(2) + (latitude - it.coordinates.latitude).pow(2))

@@ -45,8 +45,14 @@ suspend fun getNextBusArrival(urlPath: String) = withContext(Dispatchers.IO) {
 
 suspend fun respondMyBusesNextPassageAsHtml(call: ApplicationCall) = coroutineScope {
     val metaData = mapOf(
-        "Eglise de caudéran" to listOf("https://ws.infotbm.com/ws/1.0/get-realtime-pass/3169/02", "https://ws.infotbm.com/ws/1.0/get-realtime-pass/3169/03"),
-        "Quinconces" to listOf("https://ws.infotbm.com/ws/1.0/get-realtime-pass/3648/02", "https://ws.infotbm.com/ws/1.0/get-realtime-pass/3648/03")
+        "Eglise de caudéran" to listOf(
+            "https://ws.infotbm.com/ws/1.0/get-realtime-pass/3169/02",
+            "https://ws.infotbm.com/ws/1.0/get-realtime-pass/3169/03"
+        ),
+        "Quinconces" to listOf(
+            "https://ws.infotbm.com/ws/1.0/get-realtime-pass/3648/02",
+            "https://ws.infotbm.com/ws/1.0/get-realtime-pass/3648/03"
+        )
     )
     val data = metaData
         .map { (name, urlPaths) -> name to urlPaths.map { async { getNextBusArrival(it) } } }
