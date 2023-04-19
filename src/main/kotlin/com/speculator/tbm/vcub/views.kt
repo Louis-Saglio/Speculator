@@ -4,7 +4,7 @@ import com.speculator.tbm.DefaultTemplate
 import kotlinx.html.*
 
 
-fun DefaultTemplate.renderVcubStationsAsHtml(vcubStations: List<VcubStation>, predictionsByStation: Map<VcubStation, List<VcubStationPrediction>>) {
+fun DefaultTemplate.renderVcubStationsAsHtml(vcubStations: List<VcubStation>, predictionsByStation: Map<VcubStation, List<VcubStationStatePrediction>>) {
         tabTitle { +"Mes stations Vcub" }
         pageTitle { +"Mes stations Vcub" }
         content {

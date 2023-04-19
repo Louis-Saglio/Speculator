@@ -17,7 +17,7 @@ data class VcubStation(
     val longitude: Double
 )
 
-data class VcubStationPrediction(
+data class VcubStationStatePrediction(
     val availablePlaces: Int,
     val availableBikes: Int,
     val minutesDelta: Int
@@ -42,7 +42,7 @@ suspend fun List<VcubStation>.getPredictions() = coroutineScope {
     map {
         it to async(Dispatchers.IO) {
             client.get("https://ws.infotbm.com/ws/1.0/vcubs/predict/15-30/${it.id}")
-                .body<VcubStationStatePredictionsPayload>()
+                .body<VcubStationStatePredictionsSerializer>().toVcubStationStatePredictionList()
         }
-    }.associate { (station, deferredPrediction) -> station to deferredPrediction.await().predictions.data }
+    }.associate { (station, deferredPrediction) ->  station to deferredPrediction.await() }
 }

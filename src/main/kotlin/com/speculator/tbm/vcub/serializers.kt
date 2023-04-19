@@ -1,5 +1,6 @@
 package com.speculator.tbm.vcub
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -40,3 +41,20 @@ class VcubDataFromFrontPageSerializer(val stations: List<VcubStationFromFrontPag
         }
     }
 }
+
+@Serializable
+class VcubStationStatePredictionsSerializer(val predictions: VcubStationStatePredictionsDataSerializer) {
+    fun toVcubStationStatePredictionList() = predictions.data.map {
+        VcubStationStatePrediction(it.availablePlaces, it.availableBikes, it.minutesDelta)
+    }
+}
+
+@Serializable
+class VcubStationStatePredictionsDataSerializer(val data: List<VcubStationStatePredictionSerializer>)
+
+@Serializable
+class VcubStationStatePredictionSerializer(
+    @SerialName("free_slots") val availablePlaces: Int,
+    @SerialName("bikes") val availableBikes: Int,
+    @SerialName("tau") val minutesDelta: Int
+)

@@ -9,7 +9,8 @@ suspend fun respondVcubStationsStatusAsHtml(call: ApplicationCall) {
     val stationNames = call.request.queryParameters.getAll("station") ?: emptyList()
     val stations = VcubDataFromFrontPageSerializer.fromFile().toVcubStationList()
     val requestedStations = stationNames.mapNotNull { stations.fuzzyGetStationByName(it) }
+    val predictions = requestedStations.getPredictions()
     call.respondHtmlTemplate(DefaultTemplate()) {
-        renderVcubStationsAsHtml(requestedStations, emptyMap())
+        renderVcubStationsAsHtml(requestedStations, predictions)
     }
 }

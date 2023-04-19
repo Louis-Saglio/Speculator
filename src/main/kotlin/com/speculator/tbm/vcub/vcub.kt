@@ -46,19 +46,6 @@ class VcubStationStandFomAPI(
 )
 
 @Serializable
-class VcubStationStatePredictionsPayload(val predictions: VcubStationStatePredictionsData)
-
-@Serializable
-class VcubStationStatePredictionsData(val data: List<VcubStationStatePrediction>)
-
-@Serializable
-class VcubStationStatePrediction(
-    @SerialName("free_slots") val availablePlaces: Int,
-    @SerialName("bikes") val availableBikes: Int,
-    @SerialName("tau") val minutesDelta: Int
-)
-
-@Serializable
 class VcubStationFromFrontPage(
     val id: Int,
     val name: String,
@@ -92,7 +79,7 @@ suspend fun respondMyVcubStationsStatusAsHtml(call: ApplicationCall) = coroutine
     val predictionsByStation = vcubStations.map {
         it to async(Dispatchers.IO) {
             client.get("https://ws.infotbm.com/ws/1.0/vcubs/predict/15-30/${it.id}")
-                .body<VcubStationStatePredictionsPayload>()
+                .body<VcubStationStatePredictionsSerializer>()
         }
     }.associate { (station, deferredPrediction) -> station to deferredPrediction.await().predictions.data }
     call.respondHtmlTemplate(DefaultTemplate()) {
